@@ -113,13 +113,13 @@ const dynamicTurns=[
 {phase:"Approach",freq:"119.700",state:"Established / inbound",atc:"SDA218, cleared ILS approach runway 27. Report established on the localizer.",keys:["cleared ILS approach","runway 27","report established","localizer"],critical:["cleared ILS approach","runway 27"]},
 {phase:"Landing / Vacated",freq:"118.100",state:"Landed, runway vacated",atc:"SDA218, wind 270 degrees at 6 knots, runway 27, cleared to land. After landing, vacate via Charlie and report runway vacated.",keys:["runway 27","cleared to land","vacate via charlie","runway vacated"],critical:["runway 27","cleared to land"]}
 ];
-let dynamicActive=false,dynamicIndex=0,dynamicRepeatCount=0;
+let dynamicActive=false,dynamicIndex=0,dynamicRepeatCount=0,dynamicLastResponse="";
 function updateDynamic(){
  const t=dynamicTurns[dynamicIndex];$("dynPhase").textContent=dynamicActive?t.phase:"Not started";$("dynFreq").textContent=dynamicActive?t.freq:"—";$("dynState").textContent=dynamicActive?t.state:"Parked";$("dynTurn").textContent=dynamicActive?(dynamicIndex+1)+" / "+dynamicTurns.length:"0 / "+dynamicTurns.length;$("dynAtc").textContent=dynamicActive?t.atc:"Start the scenario to begin your flight.";
  $("dynStart").textContent=dynamicActive?"Flight in progress":"▶ Start B737 flight";$("dynStart").disabled=dynamicActive;
 }
-function startDynamic(){dynamicActive=true;dynamicIndex=0;dynamicRepeatCount=0;updateDynamic();$("dynFeedback").textContent="Clearance delivery. Listen and read back all critical items.";speak();}
-function resetDynamic(){dynamicActive=false;dynamicIndex=0;dynamicRepeatCount=0;updateDynamic();$("dynFeedback").textContent="Flight reset. Start when ready.";}
+function startDynamic(){dynamicActive=true;dynamicIndex=0;dynamicRepeatCount=0;dynamicLastResponse="";updateDynamic();$("dynFeedback").textContent="Clearance delivery. Listen and read back all critical items.";speak();}
+function resetDynamic(){dynamicActive=false;dynamicIndex=0;dynamicRepeatCount=0;dynamicLastResponse="";updateDynamic();$("dynFeedback").textContent="Flight reset. Start when ready.";}
 function assessDynamic(){
  if(!dynamicActive||!recognized.trim())return;
  const t=dynamicTurns[dynamicIndex],heard=normalize(recognized);
@@ -130,7 +130,7 @@ function assessDynamic(){
  if(missing.length){dynamicRepeatCount++;$("dynFeedback").textContent="READBACK INCOMPLETE — critical item(s) missing: "+missing.join(", ")+". ATC correction: "+t.atc+" Please read back again.";return;}
  if(matched.length<t.keys.length){$("dynFeedback").textContent="Critical items received. Review non-critical details: "+t.keys.filter(k=>!matched.includes(k)).join(", ")+". For this training scenario, the flight may continue."; }
  else $("dynFeedback").textContent="Readback accepted. "+t.phase+" completed.";
- if(dynamicIndex<dynamicTurns.length-1){dynamicIndex++;dynamicRepeatCount=0;updateDynamic();setTimeout(()=>{if(dynamicActive){$("dynFeedback").textContent+=" Next instruction follows.";speak();}},500);}
+ if(dynamicIndex<dynamicTurns.length-1){dynamicIndex++;dynamicRepeatCount=0;dynamicLastResponse="";updateDynamic();setTimeout(()=>{if(dynamicActive){$("dynFeedback").textContent+=" Next instruction follows.";speak();}},500);}
  else{dynamicActive=false;$("dynPhase").textContent="Completed";$("dynState").textContent="Flight complete";$("dynTurn").textContent=dynamicTurns.length+" / "+dynamicTurns.length;$("dynFeedback").textContent="Scenario complete: clearance through landing and runway vacated. Review any missed items above.";}
 }
 
